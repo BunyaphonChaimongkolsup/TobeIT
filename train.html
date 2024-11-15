@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ตำแหน่งการขนส่งสาธารณะเพื่อคนพิการและผู้สูงอายุ</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <style>
+        #map {
+            height: 800px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>แผนที่การขนส่งสาธารณะทางรถรางเพื่อคนพิการและผู้สูงอายุ</h1>
+    <button onclick="locateUser()">ค้นหาตำแหน่งของฉัน</button>
+    <button onclick="setCustomLocation()">เลือกตำแหน่งเอง</button>
+    <div id="map"></div>
+    <script>
+        // สร้างแผนที่พื้นฐาน
+        const map = L.map('map').setView([13.736717, 100.523186], 12); // เริ่มที่กรุงเทพฯ
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+            maxZoom: 18,
+        }).addTo(map);
+
+        let userMarker; // เก็บ Marker ตำแหน่งผู้ใช้
+
+        // ฟังก์ชันดึงชื่อสถานที่จากตำแหน่ง (Reverse Geocoding)
+        async function getPlaceName(lat, lng) {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+            const data = await response.json();
+            return data.display_name || "ไม่สามารถระบุสถานที่ได้";
+        }
+
+        // ฟังก์ชันปักหมุดพร้อมดึงชื่อสถานที่และเพิ่มชื่อสถานี
+        async function addFixedMarker(lat, lng, stationName) {
+            const placeName = await getPlaceName(lat, lng); // ดึงชื่อสถานที่
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup(`${stationName}: ${placeName}`) // เพิ่มชื่อสถานีก่อนข้อความสถานที่
+                .openPopup();
+        }
+
+        // เรียกฟังก์ชันเพื่อปักหมุดที่ตำแหน่งที่กำหนด
+        addFixedMarker(13.89265532, 100.4082133, "สถานีคลองบางไผ่"); // ตัวอย่าง: ปักหมุดที่คลองบางไผ่
+        addFixedMarker(13.88117578, 100.4092291, "สถานีตลาดบางใหญ่"); // ตัวอย่าง: ปักหมุดที่ตลาดบางใหญ่
+        addFixedMarker(13.87489038, 100.4194622, "สถานีสามแยกบางใหญ่");
+        addFixedMarker(13.87606921, 100.4338545, "สถานีแยกบางพลู");
+        addFixedMarker(13.87692579, 100.4449209, "สถานีบางรักใหญ่");
+        addFixedMarker(13.87493038, 100.4562422, "สถานีบางรักน้อยท่าอิฐ");
+        addFixedMarker(13.87081853, 100.466683, "สถานีไทรม้า");
+        addFixedMarker(13.87050047, 100.4803854, "สถานีสะพานพระนั่งเกล้า");
+        addFixedMarker(13.86618456, 100.494225, "สถานีแยกนนทบุรี1");
+        addFixedMarker(13.86194398, 100.5044551, "สถานีบางกระสอ");
+        addFixedMarker(13.86055383, 100.5132624, "สถานีศูนย์ราชการนนทบุรี");
+        addFixedMarker(13.84900391, 100.5147076, "สถานีกระทรวงสาธารณสุข");
+        addFixedMarker(13.83992612, 100.5148507, "สถานีแยกติวานนท์");
+        addFixedMarker(13.83013035, 100.5265194, "สถานีวงศ์สว่าง");
+        addFixedMarker(13.82226417, 100.5342324, "สถานีบางซ่อน");
+        addFixedMarker(13.80634658, 100.5307288, "สถานีเตาปูน");
+        addFixedMarker(13.72987185, 100.4741201, "สถานีท่าพระ");
+        // addFixedMarker(13.73987053, 100.4708022, "สถานีจรัญฯ 13");
+        // addFixedMarker(13.75536046, 100.4692393, "สถานีไฟฉาย");
+        // addFixedMarker(13.76327177, 100.4734429, "สถานีบางขุนนนท์");
+        // addFixedMarker(13.77762335, 100.4856728, "สถานีบางยี่ขัน");
+        // addFixedMarker(13.78419584, 100.493697, "สถานีสิรินธร");
+        // addFixedMarker(13.79267193, 100.505081, "สถานีบางพลัด");
+        // addFixedMarker(13.79912921, 100.5098517, "สถานีบางอ้อ");
+        // addFixedMarker(13.80659436, 100.5212458, "สถานีบางโพ");
+        // addFixedMarker(13.80634658, 100.5306644, "สถานีเตาปูน");
+        // addFixedMarker(13.803145, 100.5391861, "สถานีบางซื่อ");
+        // addFixedMarker(13.79815509, 100.5478437, "สถานีกำแพงเพชร");
+        // addFixedMarker(13.80249566, 100.5537081, "สถานีสวนจตุจักร");
+        // addFixedMarker(13.81440328, 100.5601699, "สถานีพหลโยธิน");
+        // addFixedMarker(13.80728034, 100.5746315, "สถานีลาดพร้าว");
+        // addFixedMarker(13.79918747, 100.5746069, "สถานีรัชดา");
+        // addFixedMarker(13.78985703, 100.5741791, "สถานีสุทธิสาร");
+        // addFixedMarker(13.77906442, 100.573949, "สถานีห้วยขวาง");
+        // addFixedMarker(13.76636512, 100.5702707, "สถานีศูนย์วัฒนธรรมแห่งประเทศไทย");
+        // addFixedMarker(13.75724519, 100.5651113, "สถานีพระราม 9");
+        // addFixedMarker(13.11654266, 99.94118418, "สถานีเพชรบุรี");
+        // addFixedMarker(13.73855707, 100.5614482, "สถานีสุขุมวิท");
+        // addFixedMarker(13.72330823, 100.5601555, "สถานีศูนย์ประชุมแห่งชาติสิริกิติ์");
+        // addFixedMarker(13.72260144, 100.5538613, "สถานีคลองเตย");
+        // addFixedMarker(13.72598696, 100.5456596, "สถานีลุมพินี");
+        // addFixedMarker(13.72943055, 100.5365569, "สถานีสีลม");
+        // addFixedMarker(13.73260063, 100.5299612, "สถานีสามย่าน");
+        // addFixedMarker(13.73874348, 100.5171294, "สถานีหัวลำโพง");
+        // addFixedMarker(13.74230053, 100.5101778, "สถานีวัดมังกร");
+        // addFixedMarker(13.7474162, 100.5021927, "สถานีสามยอด");
+        // addFixedMarker(13.74408314, 100.4947043, "สถานีสนามไชย");
+        // addFixedMarker(13.73853805, 100.4852559, "สถานีอิสรภาพ");
+        // addFixedMarker(13.72552135, 100.4650556, "สถานีบางไผ่");
+        // addFixedMarker(13.72057804, 100.4572236, "สถานีบางหว้า");
+        // addFixedMarker(13.71575019, 100.4456248, "สถานีเพชรเกษม 48");
+        // addFixedMarker(13.71301309, 100.4341889, "สถานีภาษีเจริญ");
+        // addFixedMarker(13.71206146, 100.4224186, "สถานีบางแค");
+        // addFixedMarker(13.71153042, 100.4100288, "สถานีหลักสอง");
+        // addFixedMarker(13.75711895, 100.5338783, "สถานีรถไฟฟ้าสุวรรณภูมิ");
+        // addFixedMarker(13.72784518, 100.7486514, "สถานีรถไฟฟ้าลาดกระบัง");
+        // addFixedMarker(13.73318046, 100.6886371, "สถานีรถไฟฟ้าบ้านทับช้าง");
+        // addFixedMarker(13.73811703, 100.6454265, "สถานีรถไฟฟ้าหัวหมาก");
+        // addFixedMarker(13.74304084, 100.6001565, "สถานีรถไฟฟ้ารามคำแหง");
+        // addFixedMarker(13.75109714, 100.5602001, "สถานีรถไฟฟ้ามักกะสัน");
+        // addFixedMarker(13.75729025, 100.5338636, "สถานีรถไฟฟ้าพญาไท");
+        // addFixedMarker(13.75524103, 100.5421438, "สถานีราชปรารภ");
+        // addFixedMarker(13.89863953, 100.5888078, "สถานีการเคหะ");
+        // addFixedMarker(13.91526561, 100.5979953, "สถานีดอนเมือง");
+        // addFixedMarker(13.96600247, 100.6053313, "สถานีหลักหก");
+        // addFixedMarker(13.9907299, 100.6022959, "สถานีรังสิต");
+        // addFixedMarker(13.82206423, 100.534197, "สถานีบางซ่อน");
+        // addFixedMarker(13.79194264, 100.4776683, "สถานีบางบำหรุ");
+        // addFixedMarker(13.7895968, 100.4399939, "สถานีตลิ่งชัน");
+        // addFixedMarker(13.80478647, 100.5415443, "สถานีกลางบางซื่อ");
+        // addFixedMarker(13.82657568, 100.5494146, "สถานีจตุจักร");
+        // addFixedMarker(13.84173318, 100.5576474, "สถานีวัดเสมียนนารี");
+        // addFixedMarker(13.84704019, 100.5607576, "สถานีบางเขน");
+        // addFixedMarker(13.8601237, 100.5672711, "สถานีทุ่งสองห้อง");
+        // addFixedMarker(13.8852766, 100.5799518, "สถานีหลักสี่");
+
+        // ฟังก์ชันหาตำแหน่งผู้ใช้
+        function locateUser() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    async function (position) {
+                        const userLat = position.coords.latitude;
+                        const userLng = position.coords.longitude;
+
+                        // ลบ Marker เดิมถ้ามี
+                        if (userMarker) map.removeLayer(userMarker);
+
+                        // ดึงชื่อสถานที่จาก Reverse Geocoding
+                        const placeName = await getPlaceName(userLat, userLng);
+
+                        // อัพเดตตำแหน่งในแผนที่
+                        map.setView([userLat, userLng], 15);
+                        userMarker = L.marker([userLat, userLng]).addTo(map)
+                            .bindPopup(`ตำแหน่งของคุณ: ${placeName}`)
+                            .openPopup();
+                    },
+                    function (error) {
+                        alert("ไม่สามารถหาตำแหน่งของคุณได้: " + error.message);
+                    },
+                    {
+                        enableHighAccuracy: true, // ขอข้อมูลตำแหน่งที่มีความแม่นยำสูง
+                        timeout: 25000,          // รอข้อมูลไม่เกิน 10 วินาที
+                        maximumAge: 0            // ไม่ใช้ข้อมูลตำแหน่งเก่า
+                    }
+                );
+            } else {
+                alert("เบราว์เซอร์ของคุณไม่รองรับ Geolocation API");
+            }
+        }
+
+        // ฟังก์ชันให้ผู้ใช้เลือกตำแหน่งเอง
+        function setCustomLocation() {
+            map.once('click', async function (e) {
+                const customLat = e.latlng.lat;
+                const customLng = e.latlng.lng;
+
+                // ลบ Marker เดิมถ้ามี
+                if (userMarker) map.removeLayer(userMarker);
+
+                // ดึงชื่อสถานที่จาก Reverse Geocoding
+                const placeName = await getPlaceName(customLat, customLng);
+
+                // เพิ่ม Marker ใหม่
+                userMarker = L.marker([customLat, customLng]).addTo(map)
+                    .bindPopup(`คุณเลือกตำแหน่ง: ${placeName}`)
+                    .openPopup();
+            });
+            alert("คลิกบนแผนที่เพื่อเลือกตำแหน่งของคุณ");
+        }
+    </script>
+</body>
+</html>
